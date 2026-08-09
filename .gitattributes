@@ -1,28 +1,21 @@
-# GitHub Language Detection - India Tourism Project
+# Frontend files (folder: frontend)
+frontend/**/*.js linguist-language=JavaScript
+frontend/**/*.jsx linguist-language=JavaScript
+frontend/**/*.css linguist-language=CSS
+frontend/**/*.html linguist-language=HTML
+frontend/**/*.json linguist-language=JSON
 
-# Frontend - JavaScript/React
-*.js linguist-language=JavaScript
-*.jsx linguist-language=JavaScript
+# Backend files (folder: backend-spring)
+backend-spring/**/*.java linguist-language=Java
 
-# Frontend - Styles
-*.css linguist-language=CSS
+# 🔥 CRITICAL: Hide compiled Java files from statistics
+backend-spring/target/** linguist-vendored=true
+backend-spring/.mvn/** linguist-vendored=true
 
-# Frontend - Markup
-*.html linguist-language=HTML
-*.htm linguist-language=HTML
+# Hide node_modules
+frontend/node_modules/** linguist-vendored=true
 
-# Configuration Files
-*.json linguist-language=JSON
-*.xml linguist-language=XML
-*.properties linguist-language=Properties
-
-# Documentation
-*.md linguist-language=Markdown
-
-# Ignore generated files from statistics
+# Hide lock files
 package-lock.json linguist-generated=true
 yarn.lock linguist-generated=true
-pnpm-lock.yaml linguist-generated=true
 *.lock linguist-generated=true
-*.class linguist-generated=true
-*.jar linguist-generated=true
