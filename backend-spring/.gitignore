@@ -1,0 +1,89 @@
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+# Compiled files
+*.class
+*.jar
+*.war
+*.ear
+
+# Build Output
+target/
+build/
+out/
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+
+# IDE Files
+.vscode/
+.idea/
+*.iml
+*.iws
+*.ipr
+.settings/
+.project
+.classpath
+*.prefs
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.sqlite
+*.h2.db
+
+# Application Properties (IMPORTANT!)
+application.properties
+application-local.properties
+application-dev.properties
+application-prod.properties
+
+# Environment Files
+.env
+.env.*
+!.env.example
+
+# Misc
+*.tmp
+*.temp
+*.cache
