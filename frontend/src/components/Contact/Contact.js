@@ -1,5 +1,6 @@
 // src/components/Contact/Contact.js
 import React, { useState } from 'react';
+import { contactAPI } from '../../services/api';
 import './Contact.css';
 
 const Contact = () => {
@@ -10,35 +11,54 @@ const Contact = () => {
     message: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
+    // Clear error when user types
+    if (error) setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validation
+    if (!formData.name || !formData.email || !formData.message) {
+      setError('⚠️ Please fill all required fields');
+      return;
+    }
+
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('⚠️ Please enter a valid email address');
+      return;
+    }
+
     setIsSubmitting(true);
+    setError('');
 
     try {
-      const response = await fetch('http://localhost:8080/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          subject: formData.subject || `Contact from ${formData.name}`,
-          message: formData.message
-        }),
-      });
+      const payload = {
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject || `Contact from ${formData.name}`,
+        message: formData.message
+      };
 
-      const result = await response.json();
+      console.log('📤 Sending contact:', payload);
+
+      // Using contactAPI which automatically uses mock if backend not available
+      const result = await contactAPI.submitContact(payload);
+      
+      console.log('📥 Contact response:', result);
       
       if (result.success) {
+        setSuccess(true);
         alert('✅ Message sent successfully! We will get back to you soon.');
         setFormData({ 
           name: '', 
@@ -46,12 +66,15 @@ const Contact = () => {
           subject: '', 
           message: '' 
         });
+        
+        // Reset success after 3 seconds
+        setTimeout(() => setSuccess(false), 3000);
       } else {
-        alert('❌ Failed to send message: ' + result.message);
+        setError('❌ ' + (result.message || 'Failed to send message'));
       }
     } catch (error) {
-      console.error('Contact form error:', error);
-      alert('❌ Failed to send message. Please try again.');
+      console.error('❌ Contact form error:', error);
+      setError('❌ Failed to send message. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -88,6 +111,9 @@ const Contact = () => {
           </div>
           
           <form className="contact-form" onSubmit={handleSubmit}>
+            {error && <div className="error-message">{error}</div>}
+            {success && <div className="success-message">✅ Message sent successfully!</div>}
+            
             <div className="form-group">
               <input
                 type="text"
@@ -140,7 +166,7 @@ const Contact = () => {
               className="btn btn-primary"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Sending...' : 'Send Message'}
+              {isSubmitting ? '⏳ Sending...' : '📤 Send Message'}
             </button>
           </form>
         </div>

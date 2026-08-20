@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { apiService } from '../../services/api'; 
+import { bookingAPI } from '../../services/api'; 
 import './DestinationModal.css';
 
 const DestinationModal = ({ destination, isOpen, onClose, onViewOnMap }) => {
@@ -13,6 +13,9 @@ const DestinationModal = ({ destination, isOpen, onClose, onViewOnMap }) => {
         travelers: 1,
         requests: ''
     });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [bookingError, setBookingError] = useState('');
+    const [bookingSuccess, setBookingSuccess] = useState(false);
 
     // Early return if modal is not open or no destination
     if (!isOpen || !destination) return null;
@@ -24,58 +27,92 @@ const DestinationModal = ({ destination, isOpen, onClose, onViewOnMap }) => {
     const handleBookNow = (pkg) => {
         setSelectedPackage(pkg);
         setShowBookingForm(true);
+        setBookingError('');
+        setBookingSuccess(false);
     };
 
-   const handleBookingSubmit = async (e) => {
-    e.preventDefault();
-    console.log('Starting booking submission...');
-    
-    try {
-        // Check if selectedPackage exists
-        if (!selectedPackage) {
-            alert('❌ Please select a package first.');
+    const handleBookingSubmit = async (e) => {
+        e.preventDefault();
+        console.log('🚀 Starting booking submission...');
+        
+        // Validate form
+        if (!bookingData.name || !bookingData.email || !bookingData.phone) {
+            setBookingError('⚠️ Please fill all required fields');
             return;
         }
 
-        const bookingPayload = {
-            name: bookingData.name,
-            email: bookingData.email,
-            phone: bookingData.phone,
-            destinationName: destination.name,
-            packageName: selectedPackage.name,
-            packagePrice: selectedPackage.price,
-            travelDate: bookingData.travelDate,
-            numberOfTravelers: parseInt(bookingData.travelers),
-            specialRequests: bookingData.requests || ''
-        };
-
-        console.log('Booking payload:', bookingPayload);
-
-        // Use the API service without authentication
-        const result = await apiService.createBooking(bookingPayload);
-        
-        console.log('Response data:', result);
-        
-        if (result.success) {
-            alert('✅ Booking submitted successfully! Check your email for confirmation.');
-            setShowBookingForm(false);
-            setSelectedPackage(null);
-            setBookingData({
-                name: '',
-                email: '',
-                phone: '',
-                travelDate: '',
-                travelers: 1,
-                requests: ''
-            });
-        } else {
-            alert('❌ Booking failed: ' + result.message);
+        // Validate email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(bookingData.email)) {
+            setBookingError('⚠️ Please enter a valid email address');
+            return;
         }
-    } catch (error) {
-        console.error('Booking error details:', error);
-        alert('❌ Failed to submit booking. Please check console for details.');
-    }
-};
+
+        // Validate phone
+        if (bookingData.phone.length < 10) {
+            setBookingError('⚠️ Please enter a valid 10-digit phone number');
+            return;
+        }
+
+        // Check if selectedPackage exists
+        if (!selectedPackage) {
+            setBookingError('❌ Please select a package first.');
+            return;
+        }
+
+        setIsSubmitting(true);
+        setBookingError('');
+
+        try {
+            const bookingPayload = {
+                name: bookingData.name,
+                email: bookingData.email,
+                phone: bookingData.phone,
+                destinationName: destination.name,
+                packageName: selectedPackage.name,
+                packagePrice: selectedPackage.price || 0,
+                travelDate: bookingData.travelDate || null,
+                numberOfTravelers: parseInt(bookingData.travelers) || 1,
+                specialRequests: bookingData.requests || ''
+            };
+
+            console.log('📤 Booking payload:', bookingPayload);
+
+            // Use the API service (automatically uses mock if backend not available)
+            const result = await bookingAPI.createBooking(bookingPayload);
+            
+            console.log('📥 Response data:', result);
+            
+            if (result.success) {
+                setBookingSuccess(true);
+                alert('✅ Booking confirmed successfully! Booking ID: ' + (result.data?.bookingId || result.data?.id || 'N/A'));
+                
+                // Reset form
+                setShowBookingForm(false);
+                setSelectedPackage(null);
+                setBookingData({
+                    name: '',
+                    email: '',
+                    phone: '',
+                    travelDate: '',
+                    travelers: 1,
+                    requests: ''
+                });
+                
+                // Close modal after delay
+                setTimeout(() => {
+                    onClose();
+                }, 2000);
+            } else {
+                setBookingError('❌ Booking failed: ' + (result.message || 'Please try again'));
+            }
+        } catch (error) {
+            console.error('❌ Booking error details:', error);
+            setBookingError('❌ Failed to submit booking. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -83,6 +120,8 @@ const DestinationModal = ({ destination, isOpen, onClose, onViewOnMap }) => {
             ...prev,
             [name]: value
         }));
+        // Clear error when user types
+        if (bookingError) setBookingError('');
     };
 
     // Safe coordinate check
@@ -281,124 +320,170 @@ const DestinationModal = ({ destination, isOpen, onClose, onViewOnMap }) => {
                             <div className="package-modal booking-form-modal">
                                 <div className="package-modal-header">
                                     <h3>Book {selectedPackage.name}</h3>
-                                    <button onClick={() => setShowBookingForm(false)}>×</button>
+                                    <button 
+                                        onClick={() => {
+                                            setShowBookingForm(false);
+                                            setBookingError('');
+                                            setBookingSuccess(false);
+                                        }}
+                                    >×</button>
                                 </div>
                                 <div className="package-modal-body">
-                                    <form onSubmit={handleBookingSubmit} className="booking-form">
-                                        <div className="form-group">
-                                            <label htmlFor="name">Full Name *</label>
-                                            <input
-                                                type="text"
-                                                id="name"
-                                                name="name"
-                                                value={bookingData.name}
-                                                onChange={handleInputChange}
-                                                required
-                                                placeholder="Enter your full name"
-                                            />
+                                    {bookingSuccess ? (
+                                        <div className="booking-success">
+                                            <div className="success-icon">✅</div>
+                                            <h3>Booking Confirmed!</h3>
+                                            <p>Your booking has been submitted successfully.</p>
+                                            <p className="success-message">We will contact you soon with confirmation details.</p>
+                                            <button 
+                                                className="btn btn-primary"
+                                                onClick={() => {
+                                                    setShowBookingForm(false);
+                                                    setBookingSuccess(false);
+                                                    onClose();
+                                                }}
+                                            >
+                                                Done
+                                            </button>
                                         </div>
-
-                                        <div className="form-group">
-                                            <label htmlFor="email">Email Address *</label>
-                                            <input
-                                                type="email"
-                                                id="email"
-                                                name="email"
-                                                value={bookingData.email}
-                                                onChange={handleInputChange}
-                                                required
-                                                placeholder="Enter your email"
-                                            />
-                                        </div>
-
-                                        <div className="form-group">
-                                            <label htmlFor="phone">Phone Number *</label>
-                                            <input
-                                                type="tel"
-                                                id="phone"
-                                                name="phone"
-                                                value={bookingData.phone}
-                                                onChange={handleInputChange}
-                                                required
-                                                placeholder="Enter your phone number"
-                                            />
-                                        </div>
-
-                                        <div className="form-row">
+                                    ) : (
+                                        <form onSubmit={handleBookingSubmit} className="booking-form">
+                                            {bookingError && (
+                                                <div className="booking-error">{bookingError}</div>
+                                            )}
+                                            
                                             <div className="form-group">
-                                                <label htmlFor="travelDate">Travel Date *</label>
+                                                <label htmlFor="name">Full Name *</label>
                                                 <input
-                                                    type="date"
-                                                    id="travelDate"
-                                                    name="travelDate"
-                                                    value={bookingData.travelDate}
+                                                    type="text"
+                                                    id="name"
+                                                    name="name"
+                                                    value={bookingData.name}
                                                     onChange={handleInputChange}
                                                     required
-                                                    min={new Date().toISOString().split('T')[0]}
+                                                    placeholder="Enter your full name"
+                                                    disabled={isSubmitting}
                                                 />
                                             </div>
 
                                             <div className="form-group">
-                                                <label htmlFor="travelers">Number of Travelers *</label>
-                                                <select
-                                                    id="travelers"
-                                                    name="travelers"
-                                                    value={bookingData.travelers}
+                                                <label htmlFor="email">Email Address *</label>
+                                                <input
+                                                    type="email"
+                                                    id="email"
+                                                    name="email"
+                                                    value={bookingData.email}
                                                     onChange={handleInputChange}
                                                     required
-                                                >
-                                                    {[1,2,3,4,5,6,7,8,9,10].map(num => (
-                                                        <option key={num} value={num}>{num} {num === 1 ? 'person' : 'people'}</option>
-                                                    ))}
-                                                </select>
+                                                    placeholder="Enter your email"
+                                                    disabled={isSubmitting}
+                                                />
                                             </div>
-                                        </div>
 
-                                        <div className="form-group">
-                                            <label htmlFor="requests">Special Requests</label>
-                                            <textarea
-                                                id="requests"
-                                                name="requests"
-                                                value={bookingData.requests}
-                                                onChange={handleInputChange}
-                                                placeholder="Any special requirements or requests..."
-                                                rows="3"
-                                            />
-                                        </div>
+                                            <div className="form-group">
+                                                <label htmlFor="phone">Phone Number *</label>
+                                                <input
+                                                    type="tel"
+                                                    id="phone"
+                                                    name="phone"
+                                                    value={bookingData.phone}
+                                                    onChange={handleInputChange}
+                                                    required
+                                                    placeholder="Enter your phone number"
+                                                    disabled={isSubmitting}
+                                                />
+                                            </div>
 
-                                        <div className="booking-summary">
-                                            <h4>Booking Summary</h4>
-                                            <div className="summary-item">
-                                                <span>Destination:</span>
-                                                <span>{destination.name}</span>
+                                            <div className="form-row">
+                                                <div className="form-group">
+                                                    <label htmlFor="travelDate">Travel Date *</label>
+                                                    <input
+                                                        type="date"
+                                                        id="travelDate"
+                                                        name="travelDate"
+                                                        value={bookingData.travelDate}
+                                                        onChange={handleInputChange}
+                                                        required
+                                                        min={new Date().toISOString().split('T')[0]}
+                                                        disabled={isSubmitting}
+                                                    />
+                                                </div>
+
+                                                <div className="form-group">
+                                                    <label htmlFor="travelers">Number of Travelers *</label>
+                                                    <select
+                                                        id="travelers"
+                                                        name="travelers"
+                                                        value={bookingData.travelers}
+                                                        onChange={handleInputChange}
+                                                        required
+                                                        disabled={isSubmitting}
+                                                    >
+                                                        {[1,2,3,4,5,6,7,8,9,10].map(num => (
+                                                            <option key={num} value={num}>{num} {num === 1 ? 'person' : 'people'}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
                                             </div>
-                                            <div className="summary-item">
-                                                <span>Package:</span>
-                                                <span>{selectedPackage.name}</span>
+
+                                            <div className="form-group">
+                                                <label htmlFor="requests">Special Requests</label>
+                                                <textarea
+                                                    id="requests"
+                                                    name="requests"
+                                                    value={bookingData.requests}
+                                                    onChange={handleInputChange}
+                                                    placeholder="Any special requirements or requests..."
+                                                    rows="3"
+                                                    disabled={isSubmitting}
+                                                />
                                             </div>
-                                            <div className="summary-item">
-                                                <span>Price:</span>
-                                                <span>{selectedPackage.price === 0 ? 'Free' : `₹${selectedPackage.price}`}</span>
+
+                                            <div className="booking-summary">
+                                                <h4>Booking Summary</h4>
+                                                <div className="summary-item">
+                                                    <span>Destination:</span>
+                                                    <span>{destination.name}</span>
+                                                </div>
+                                                <div className="summary-item">
+                                                    <span>Package:</span>
+                                                    <span>{selectedPackage.name}</span>
+                                                </div>
+                                                <div className="summary-item">
+                                                    <span>Price:</span>
+                                                    <span>{selectedPackage.price === 0 ? 'Free' : `₹${selectedPackage.price}`}</span>
+                                                </div>
+                                                <div className="summary-item">
+                                                    <span>Travelers:</span>
+                                                    <span>{bookingData.travelers}</span>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </form>
+                                        </form>
+                                    )}
                                 </div>
-                                <div className="package-modal-footer">
-                                    <button 
-                                        type="button"
-                                        className="btn btn-secondary"
-                                        onClick={() => setShowBookingForm(false)}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button 
-                                        type="submit"
-                                        className="btn btn-primary"
-                                        onClick={handleBookingSubmit}
-                                    >
-                                        Confirm Booking
-                                    </button>
-                                </div>
+                                {!bookingSuccess && (
+                                    <div className="package-modal-footer">
+                                        <button 
+                                            type="button"
+                                            className="btn btn-secondary"
+                                            onClick={() => {
+                                                setShowBookingForm(false);
+                                                setBookingError('');
+                                            }}
+                                            disabled={isSubmitting}
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button 
+                                            type="submit"
+                                            className="btn btn-primary"
+                                            onClick={handleBookingSubmit}
+                                            disabled={isSubmitting}
+                                        >
+                                            {isSubmitting ? '⏳ Submitting...' : '✅ Confirm Booking'}
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}

@@ -719,7 +719,7 @@ const Chatbot = () => {
         state: 'Maharashtra',
         category: 'wildlife',
         price: 2075,
-        response: `🐅 **Tadoba National Park**\n\nMaharashtra\'s oldest and largest national park, famous for tiger sightings and rich biodiversity.\n\n✨ **Tiger Territory:**\n• Tiger safari experiences\n• Bird watching\n• Lake views\n• Wildlife photography\n• Rich biodiversity\n\n📅 **Best Time:** October to May\n⏰ **Duration:** 2-3 days\n💰 **Budget:** ₹150-4000\n⭐ **Rating:** 4.5/5`,
+        response: `🐅 **Tadoba National Park**\n\nMaharashtra's oldest and largest national park, famous for tiger sightings and rich biodiversity.\n\n✨ **Tiger Territory:**\n• Tiger safari experiences\n• Bird watching\n• Lake views\n• Wildlife photography\n• Rich biodiversity\n\n📅 **Best Time:** October to May\n⏰ **Duration:** 2-3 days\n💰 **Budget:** ₹150-4000\n⭐ **Rating:** 4.5/5`,
         tips: ['Book safari permits early', 'Early morning safaris best', 'Carry binoculars and camera', 'Follow park guidelines'],
         images: 'https://www.google.com/search?q=tadoba+national+park+images&tbm=isch',
         info: 'https://www.google.com/search?q=tadoba+national+park+official+information'
@@ -739,7 +739,7 @@ const Chatbot = () => {
         state: 'Maharashtra',
         category: 'cultural',
         price: 5000,
-        response: `👑 **Kolhapur - Cultural Capital**\n\nHistoric city known as \'Dakshin Kashi\' famous for Mahalaxmi Temple, Kolhapuri chappals, and spicy cuisine.\n\n✨ **Cultural Experience:**\n• Mahalaxmi Temple\n• Kolhapuri chappals\n• Spicy Kolhapuri cuisine\n• Historical palaces\n• Rankala Lake\n\n📅 **Best Time:** October to March\n⏰ **Duration:** 2-3 days\n💰 **Budget:** ₹2,000-8,000\n⭐ **Rating:** 4.3/5`,
+        response: `👑 **Kolhapur - Cultural Capital**\n\nHistoric city known as 'Dakshin Kashi' famous for Mahalaxmi Temple, Kolhapuri chappals, and spicy cuisine.\n\n✨ **Cultural Experience:**\n• Mahalaxmi Temple\n• Kolhapuri chappals\n• Spicy Kolhapuri cuisine\n• Historical palaces\n• Rankala Lake\n\n📅 **Best Time:** October to March\n⏰ **Duration:** 2-3 days\n💰 **Budget:** ₹2,000-8,000\n⭐ **Rating:** 4.3/5`,
         tips: ['Visit Mahalaxmi Temple', 'Try authentic Kolhapuri food', 'Buy Kolhapuri chappals', 'Explore historical sites'],
         images: 'https://www.google.com/search?q=kolhapur+city+images&tbm=isch',
         info: 'https://www.google.com/search?q=kolhapur+tourism+official+guide'
